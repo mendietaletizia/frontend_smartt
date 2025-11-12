@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { listProducts, createProduct, updateProduct, deleteProduct, listCategorias, createCategoria, updateCategoria, deleteCategoria } from '../api/products.js';
 import { listClients, getClient, getClientVentas, updateClient, deleteClient } from '../api/clients.js';
+import { obtenerEstadisticasDashboard } from '../api/dashboard.js';
 import ImageUpload from '../components/ImageUpload.jsx';
 import HistorialVentas from '../components/HistorialVentas.jsx';
 import ReportesDinamicos from '../components/ReportesDinamicos.jsx';
@@ -27,6 +28,8 @@ export default function AdminDashboard({ user, onLogout }) {
   const [clientes, setClientes] = useState([]);
   const [ventas, setVentas] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [dashboardStats, setDashboardStats] = useState(null);
+  const [loadingStats, setLoadingStats] = useState(true);
   const [productModalOpen, setProductModalOpen] = useState(false);
   const [productViewOpen, setProductViewOpen] = useState(false);
   const [editingProductId, setEditingProductId] = useState(null);
@@ -58,28 +61,61 @@ export default function AdminDashboard({ user, onLogout }) {
     avatar: user?.nombre?.charAt(0) || 'A'
   };
 
-  // Datos del dashboard con colores azules
-  const stats = [
+  // Datos del dashboard con colores azules - ahora desde API
+  const stats = dashboardStats?.stats ? [
     {
       title: 'Ventas del Mes',
-      value: 'Bs. 127,450',
-      change: '+12.5%',
+      value: `Bs. ${(dashboardStats.stats.ventas_mes?.value || 0).toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      change: `${(dashboardStats.stats.ventas_mes?.change || 0) >= 0 ? '+' : ''}${(dashboardStats.stats.ventas_mes?.change || 0).toFixed(1)}%`,
+      trend: dashboardStats.stats.ventas_mes?.trend || 'up',
+      icon: DollarSign,
+      color: 'blue'
+    },
+    {
+      title: 'Total Pedidos',
+      value: (dashboardStats.stats.total_pedidos?.value || 0).toString(),
+      change: `${(dashboardStats.stats.total_pedidos?.change || 0) >= 0 ? '+' : ''}${(dashboardStats.stats.total_pedidos?.change || 0).toFixed(1)}%`,
+      trend: dashboardStats.stats.total_pedidos?.trend || 'up',
+      icon: ShoppingBag,
+      color: 'blue'
+    },
+    {
+      title: 'Nuevos Clientes',
+      value: (dashboardStats.stats.nuevos_clientes?.value || 0).toString(),
+      change: `${(dashboardStats.stats.nuevos_clientes?.change || 0) >= 0 ? '+' : ''}${(dashboardStats.stats.nuevos_clientes?.change || 0).toFixed(1)}%`,
+      trend: dashboardStats.stats.nuevos_clientes?.trend || 'up',
+      icon: Users,
+      color: 'blue'
+    },
+    {
+      title: 'Productos Activos',
+      value: (dashboardStats.stats.productos_activos?.value || productos.length || 0).toString(),
+      change: `${(dashboardStats.stats.productos_activos?.change || 0) >= 0 ? '+' : ''}${(dashboardStats.stats.productos_activos?.change || 0).toFixed(1)}%`,
+      trend: dashboardStats.stats.productos_activos?.trend || 'up',
+      icon: Package,
+      color: 'blue'
+    }
+  ] : [
+    {
+      title: 'Ventas del Mes',
+      value: 'Bs. 0.00',
+      change: '0%',
       trend: 'up',
       icon: DollarSign,
       color: 'blue'
     },
     {
       title: 'Total Pedidos',
-      value: '342',
-      change: '+8.2%',
+      value: '0',
+      change: '0%',
       trend: 'up',
       icon: ShoppingBag,
       color: 'blue'
     },
     {
       title: 'Nuevos Clientes',
-      value: '89',
-      change: '+23.1%',
+      value: '0',
+      change: '0%',
       trend: 'up',
       icon: Users,
       color: 'blue'
@@ -87,26 +123,15 @@ export default function AdminDashboard({ user, onLogout }) {
     {
       title: 'Productos Activos',
       value: productos.length.toString(),
-      change: '-2.4%',
-      trend: 'down',
+      change: '0%',
+      trend: 'up',
       icon: Package,
       color: 'blue'
     }
   ];
 
-  const recentSales = [
-    { id: 'V-2025-001', client: 'María García', amount: 4299.00, status: 'Completado', date: '27/10/2025' },
-    { id: 'V-2025-002', client: 'Juan Pérez', amount: 8999.00, status: 'Pendiente', date: '27/10/2025' },
-    { id: 'V-2025-003', client: 'Ana López', amount: 2499.00, status: 'Completado', date: '26/10/2025' },
-    { id: 'V-2025-004', client: 'Pedro Sánchez', amount: 5799.00, status: 'En proceso', date: '26/10/2025' },
-    { id: 'V-2025-005', client: 'Laura Martínez', amount: 1899.00, status: 'Completado', date: '25/10/2025' }
-  ];
-
-  const topProducts = productos.slice(0, 4).map(producto => ({
-    name: producto.nombre,
-    sales: Math.floor(Math.random() * 50) + 10,
-    revenue: producto.precio * (Math.floor(Math.random() * 50) + 10)
-  }));
+  const recentSales = dashboardStats?.ventas_recientes || [];
+  const topProducts = dashboardStats?.top_products || [];
 
   const aiPredictions = {
     nextMonth: 142300,
@@ -136,7 +161,31 @@ export default function AdminDashboard({ user, onLogout }) {
   useEffect(() => {
     loadData();
     loadCategorias();
+    loadDashboardStats();
   }, []);
+
+  async function loadDashboardStats() {
+    try {
+      setLoadingStats(true);
+      setUiError('');
+      const data = await obtenerEstadisticasDashboard();
+      if (data && data.success && data.stats) {
+        setDashboardStats(data);
+        setUiError('');
+      } else {
+        setDashboardStats(null);
+        const errorMsg = data?.message || 'Los datos del dashboard están incompletos. Por favor, intente actualizar.';
+        setUiError(errorMsg);
+      }
+    } catch (error) {
+      console.error('Error cargando estadísticas del dashboard:', error);
+      setDashboardStats(null);
+      const errorMessage = error.message || 'No se pudieron cargar las estadísticas del dashboard. Por favor, intente nuevamente.';
+      setUiError(errorMessage);
+    } finally {
+      setLoadingStats(false);
+    }
+  }
 
   // Cargar clientes cuando se entra a la sección
   useEffect(() => {
@@ -451,6 +500,26 @@ export default function AdminDashboard({ user, onLogout }) {
 
   const renderDashboard = () => (
     <main className="admin-main">
+      {/* Botón de actualizar estadísticas */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
+        <button
+          onClick={loadDashboardStats}
+          disabled={loadingStats}
+          className="admin-content-button admin-content-button-secondary"
+          style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+        >
+          <RefreshCw className={`admin-content-button-icon ${loadingStats ? 'spinning' : ''}`} style={{ animation: loadingStats ? 'spin 1s linear infinite' : 'none' }} />
+          <span>Actualizar Estadísticas</span>
+        </button>
+      </div>
+
+      {/* Mensaje de error si existe */}
+      {uiError && (
+        <div className="error" style={{ marginBottom: '16px', padding: '12px', borderRadius: '8px', backgroundColor: '#fee', border: '1px solid #fcc' }}>
+          {uiError}
+        </div>
+      )}
+
       {/* Stats Cards */}
       <div className="admin-stats-grid">
         {stats.map((stat, index) => {
@@ -481,13 +550,27 @@ export default function AdminDashboard({ user, onLogout }) {
             <button className="admin-chart-button">Ver detalles</button>
           </div>
           <div className="admin-chart-content">
-            {[65, 78, 85, 72, 90, 88, 95, 82, 75, 92, 88, 85].map((height, index) => (
-              <div key={index} className="admin-chart-bar" style={{height: `${height}%`}}></div>
-            ))}
+            {dashboardStats?.ventas_mensuales?.heights ? (
+              dashboardStats.ventas_mensuales.heights.map((height, index) => (
+                <div key={index} className="admin-chart-bar" style={{height: `${height}%`}}></div>
+              ))
+            ) : (
+              [65, 78, 85, 72, 90, 88, 95, 82, 75, 92, 88, 85].map((height, index) => (
+                <div key={index} className="admin-chart-bar" style={{height: `${height}%`}}></div>
+              ))
+            )}
           </div>
           <div className="admin-chart-labels">
-            <span>Ene</span><span>Feb</span><span>Mar</span><span>Abr</span><span>May</span><span>Jun</span>
-            <span>Jul</span><span>Ago</span><span>Sep</span><span>Oct</span><span>Nov</span><span>Dic</span>
+            {dashboardStats?.ventas_mensuales?.labels ? (
+              dashboardStats.ventas_mensuales.labels.map((label, index) => (
+                <span key={index}>{label}</span>
+              ))
+            ) : (
+              <>
+                <span>Ene</span><span>Feb</span><span>Mar</span><span>Abr</span><span>May</span><span>Jun</span>
+                <span>Jul</span><span>Ago</span><span>Sep</span><span>Oct</span><span>Nov</span><span>Dic</span>
+              </>
+            )}
           </div>
         </div>
 
@@ -547,18 +630,33 @@ export default function AdminDashboard({ user, onLogout }) {
                 </tr>
               </thead>
               <tbody className="admin-table-body">
-                {recentSales.map((sale) => (
-                  <tr key={sale.id} className="admin-table-row">
-                    <td className="admin-table-cell">{sale.id}</td>
-                    <td className="admin-table-cell admin-table-cell-bold">{sale.client}</td>
-                    <td className="admin-table-cell admin-table-cell-bold">Bs. {sale.amount.toFixed(2)}</td>
-                    <td className="admin-table-cell">
-                      <span className={`admin-table-status admin-table-status-${sale.status.toLowerCase().replace(' ', '-')}`}>
-                        {sale.status}
-                      </span>
+                {loadingStats ? (
+                  <tr>
+                    <td colSpan="4" style={{ textAlign: 'center', padding: '20px' }}>
+                      <div className="admin-spinner" style={{ margin: '0 auto' }}></div>
+                      <p style={{ marginTop: '8px', color: '#6b7280' }}>Cargando ventas...</p>
                     </td>
                   </tr>
-                ))}
+                ) : recentSales.length === 0 ? (
+                  <tr>
+                    <td colSpan="4" style={{ textAlign: 'center', padding: '20px', color: '#6b7280' }}>
+                      No hay ventas recientes
+                    </td>
+                  </tr>
+                ) : (
+                  recentSales.map((sale) => (
+                    <tr key={sale.id} className="admin-table-row">
+                      <td className="admin-table-cell">{sale.id}</td>
+                      <td className="admin-table-cell admin-table-cell-bold">{sale.client}</td>
+                      <td className="admin-table-cell admin-table-cell-bold">Bs. {sale.amount.toFixed(2)}</td>
+                      <td className="admin-table-cell">
+                        <span className={`admin-table-status admin-table-status-${sale.status.toLowerCase().replace(' ', '-')}`}>
+                          {sale.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
@@ -571,22 +669,36 @@ export default function AdminDashboard({ user, onLogout }) {
             <button className="admin-table-button">Ver todos</button>
           </div>
           <div className="admin-table-content">
-            <div className="admin-products-list">
-              {topProducts.map((product, index) => (
-                <div key={index} className="admin-product-item">
-                  <div className="admin-product-info">
-                    <p className="admin-product-name">{product.name}</p>
-                    <p className="admin-product-sales">{product.sales} ventas</p>
-                  </div>
-                  <div className="admin-product-stats">
-                    <p className="admin-product-revenue">Bs. {product.revenue.toLocaleString()}</p>
-                    <div className="admin-product-bar">
-                      <div className="admin-product-bar-fill" style={{width: `${(product.sales / 60) * 100}%`}}></div>
+            {loadingStats ? (
+              <div style={{ textAlign: 'center', padding: '20px' }}>
+                <div className="admin-spinner" style={{ margin: '0 auto' }}></div>
+                <p style={{ marginTop: '8px', color: '#6b7280' }}>Cargando productos...</p>
+              </div>
+            ) : topProducts.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '20px', color: '#6b7280' }}>
+                No hay productos vendidos aún
+              </div>
+            ) : (
+              <div className="admin-products-list">
+                {topProducts.map((product, index) => {
+                  const maxSales = Math.max(...topProducts.map(p => p.sales), 1);
+                  return (
+                    <div key={index} className="admin-product-item">
+                      <div className="admin-product-info">
+                        <p className="admin-product-name">{product.name}</p>
+                        <p className="admin-product-sales">{product.sales} ventas</p>
+                      </div>
+                      <div className="admin-product-stats">
+                        <p className="admin-product-revenue">Bs. {product.revenue.toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                        <div className="admin-product-bar">
+                          <div className="admin-product-bar-fill" style={{width: `${(product.sales / maxSales) * 100}%`}}></div>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -1717,7 +1829,7 @@ export default function AdminDashboard({ user, onLogout }) {
       case 'reportes':
         return (
           <main className="admin-main" style={{ padding: '0' }}>
-            <ReportesDinamicos />
+            <ReportesDinamicos user={user} />
           </main>
         );
       case 'categorias':

@@ -130,8 +130,14 @@ export default function StripePaymentForm({ direccionEntrega, notas, total, onSu
           
           elementsRef.current = elements
           
-          // Crear PaymentElement
-          const paymentElement = elements.create('payment')
+          // Crear PaymentElement solo con tarjetas (sin Amazon Pay, Link, Cash App Pay)
+          const paymentElement = elements.create('payment', {
+            wallets: {
+              applePay: 'never',
+              googlePay: 'never',
+            },
+            paymentMethodTypes: ['card'],  // Solo tarjetas de crédito/débito
+          })
           paymentElementRef.current = paymentElement
           
           // No establecer loading en false todavía, esperar a que se monte

@@ -103,7 +103,7 @@ export default function PagoOnline({ isOpen, onClose, venta, onPagoExitoso }) {
               <h3>Pago Procesado Exitosamente</h3>
               <div className="pago-success-details">
                 <p><strong>Referencia:</strong> {pagoData.referencia}</p>
-                <p><strong>Monto:</strong> ${pagoData.monto.toFixed(2)}</p>
+                <p><strong>Monto:</strong> Bs. {pagoData.monto.toFixed(2)}</p>
                 <p><strong>Estado:</strong> {pagoData.estado}</p>
                 <p><strong>Tarjeta:</strong> **** **** **** {pagoData.ultimos_4_digitos}</p>
               </div>
@@ -115,7 +115,7 @@ export default function PagoOnline({ isOpen, onClose, venta, onPagoExitoso }) {
             <>
               <div className="pago-venta-info">
                 <p><strong>Venta #</strong> {venta.id}</p>
-                <p><strong>Total a Pagar:</strong> ${venta.total.toFixed(2)}</p>
+                <p><strong>Total a Pagar:</strong> Bs. {venta.total.toFixed(2)}</p>
               </div>
 
               {error && (

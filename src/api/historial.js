@@ -39,3 +39,12 @@ export async function sincronizarHistorial() {
   return data
 }
 
+export async function obtenerOpcionesFiltros() {
+  const res = await fetch('/api/ventas/historial/filtros/', {
+    credentials: 'include'
+  })
+  const data = await res.json().catch(() => ({ success: false }))
+  if (!res.ok || !data.success) throw new Error(data.message || 'Error al obtener opciones de filtros')
+  return data
+}
+

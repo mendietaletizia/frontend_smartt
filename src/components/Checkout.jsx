@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import StripePaymentForm from './StripePaymentForm.jsx'
+import { descargarComprobantePDF } from '../api/comprobantes.js'
 import './Checkout.css'
 
 export default function Checkout({ isOpen, onClose, carrito, onCompraExitosa, onCloseCarrito }) {
@@ -20,6 +21,7 @@ export default function Checkout({ isOpen, onClose, carrito, onCompraExitosa, on
   const successBodyRef = useRef(null) // Referencia para el body de confirmación
   const [showStripeForm, setShowStripeForm] = useState(false) // Mostrar formulario de Stripe
   const [stripeData, setStripeData] = useState(null) // Datos para Stripe (dirección, etc.)
+  const [comprobanteData, setComprobanteData] = useState(null) // Datos del comprobante generado
 
   // Limpiar estado SOLO cuando el modal se cierra completamente
   // No limpiar cuando success está activo para mantener la vista de confirmación
@@ -29,6 +31,7 @@ export default function Checkout({ isOpen, onClose, carrito, onCompraExitosa, on
       setVentaData(null)
       setCarritoSnapshot(null)
       setError('')
+      setComprobanteData(null)
       setForm({
         avenida_calle: '',
         barrio: '',
@@ -132,6 +135,7 @@ export default function Checkout({ isOpen, onClose, carrito, onCompraExitosa, on
     setSuccess(false)
     setVentaData(null)
     setCarritoSnapshot(null)
+    setComprobanteData(null)
     setForm({
       avenida_calle: '',
       barrio: '',
@@ -198,7 +202,52 @@ export default function Checkout({ isOpen, onClose, carrito, onCompraExitosa, on
               {ventaData && (
                 <div className="venta-id">
                   <span className="venta-id-label">Número de Pedido:</span>
-                  <span className="venta-id-value">#{ventaData.id}</span>
+                  <span className="venta-id-value">#{ventaData.id_venta || ventaData.id}</span>
+                </div>
+              )}
+              {comprobanteData && (
+                <div className="comprobante-info" style={{
+                  marginTop: '16px',
+                  padding: '12px',
+                  background: '#f0f9ff',
+                  border: '1px solid #0ea5e9',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '12px'
+                }}>
+                  <div>
+                    <div style={{ fontWeight: '600', color: '#0369a1', marginBottom: '4px' }}>
+                      📄 Comprobante Generado
+                    </div>
+                    <div style={{ fontSize: '13px', color: '#64748b' }}>
+                      {comprobanteData.tipo === 'factura' ? 'Factura' : 'Comprobante'} N° {comprobanteData.numero}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => descargarComprobantePDF(ventaData.id_venta || ventaData.id)}
+                    style={{
+                      padding: '8px 16px',
+                      background: '#0ea5e9',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      fontSize: '13px',
+                      fontWeight: '600',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseOver={(e) => e.target.style.background = '#0284c7'}
+                    onMouseOut={(e) => e.target.style.background = '#0ea5e9'}
+                  >
+                    <span>⬇️</span>
+                    <span>Descargar PDF</span>
+                  </button>
                 </div>
               )}
             </div>
@@ -261,7 +310,9 @@ export default function Checkout({ isOpen, onClose, carrito, onCompraExitosa, on
                   Método de Pago
                 </h3>
                 <div className="confirmation-section-content">
-                  <p className="confirmation-text">{getMetodoPagoNombre(form.metodo_pago)}</p>
+                  <p className="confirmation-text">
+                    {ventaData?.metodo_pago === 'stripe' ? '💳 Pago con Tarjeta (Stripe)' : getMetodoPagoNombre(form.metodo_pago)}
+                  </p>
                 </div>
               </div>
 
@@ -272,37 +323,105 @@ export default function Checkout({ isOpen, onClose, carrito, onCompraExitosa, on
                 </h3>
                 <div className="confirmation-section-content">
                   <div className="address-display">
-                    <div className="address-line">
-                      <strong>Avenida o Calle:</strong> {form.avenida_calle}
-                    </div>
-                    <div className="address-line">
-                      <strong>Barrio:</strong> {form.barrio}
-                    </div>
-                    <div className="address-line">
-                      <strong>Departamento:</strong> {form.departamento}
-                    </div>
-                    {form.telefono_1 && (
-                      <div className="address-line">
-                        <strong>Teléfono 1:</strong> {form.telefono_1}
-                      </div>
-                    )}
-                    {form.telefono_2 && (
-                      <div className="address-line">
-                        <strong>Teléfono 2:</strong> {form.telefono_2}
-                      </div>
+                    {ventaData?.metodo_pago === 'stripe' && stripeData?.direccion_entrega ? (
+                      // Mostrar dirección completa cuando viene de Stripe
+                      <p className="confirmation-text" style={{ whiteSpace: 'pre-line' }}>
+                        {stripeData.direccion_entrega}
+                      </p>
+                    ) : (
+                      // Mostrar campos separados cuando viene del formulario normal
+                      <>
+                        <div className="address-line">
+                          <strong>Avenida o Calle:</strong> {form.avenida_calle}
+                        </div>
+                        <div className="address-line">
+                          <strong>Barrio:</strong> {form.barrio}
+                        </div>
+                        <div className="address-line">
+                          <strong>Departamento:</strong> {form.departamento}
+                        </div>
+                        {form.telefono_1 && (
+                          <div className="address-line">
+                            <strong>Teléfono 1:</strong> {form.telefono_1}
+                          </div>
+                        )}
+                        {form.telefono_2 && (
+                          <div className="address-line">
+                            <strong>Teléfono 2:</strong> {form.telefono_2}
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
                 </div>
               </div>
 
-              {form.notas && (
+              {(form.notas || stripeData?.notas) && (
                 <div className="confirmation-section">
                   <h3 className="confirmation-section-title">
                     <span className="section-icon">📝</span>
                     Notas Adicionales
                   </h3>
                   <div className="confirmation-section-content">
-                    <p className="confirmation-text">{form.notas}</p>
+                    <p className="confirmation-text">{stripeData?.notas || form.notas}</p>
+                  </div>
+                </div>
+              )}
+              
+              {/* Sección del Comprobante */}
+              {comprobanteData && (
+                <div className="confirmation-section">
+                  <h3 className="confirmation-section-title">
+                    <span className="section-icon">📄</span>
+                    Comprobante de Venta
+                  </h3>
+                  <div className="confirmation-section-content">
+                    <div style={{
+                      padding: '16px',
+                      background: '#f0f9ff',
+                      border: '1px solid #0ea5e9',
+                      borderRadius: '8px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: '12px'
+                    }}>
+                      <div>
+                        <div style={{ fontWeight: '600', color: '#0369a1', marginBottom: '4px' }}>
+                          📄 {comprobanteData.tipo === 'factura' ? 'Factura' : 'Comprobante'} Generada
+                        </div>
+                        <div style={{ fontSize: '13px', color: '#64748b' }}>
+                          N° {comprobanteData.numero}
+                        </div>
+                        <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '4px' }}>
+                          Fecha: {new Date(comprobanteData.fecha).toLocaleDateString('es-ES')}
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => descargarComprobantePDF(ventaData.id_venta || ventaData.id)}
+                        style={{
+                          padding: '10px 18px',
+                          background: '#0ea5e9',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '6px',
+                          cursor: 'pointer',
+                          fontSize: '14px',
+                          fontWeight: '600',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          transition: 'all 0.2s',
+                          whiteSpace: 'nowrap'
+                        }}
+                        onMouseOver={(e) => e.target.style.background = '#0284c7'}
+                        onMouseOut={(e) => e.target.style.background = '#0ea5e9'}
+                      >
+                        <span>⬇️</span>
+                        <span>Descargar PDF</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}
@@ -616,6 +735,12 @@ export default function Checkout({ isOpen, onClose, carrito, onCompraExitosa, on
                     estado: 'completada',
                     metodo_pago: 'stripe'
                   })
+                  
+                  // Guardar datos del comprobante si viene en la respuesta
+                  if (result.comprobante) {
+                    setComprobanteData(result.comprobante)
+                  }
+                  
                   setSuccess(true)
                   setShowStripeForm(false)
                   if (onCompraExitosa) {
