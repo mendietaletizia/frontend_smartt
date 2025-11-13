@@ -4,7 +4,8 @@ import { obtenerHistorialAgregado } from '../api/historial.js';
 import { 
   DollarSign, TrendingUp, TrendingDown, BarChart3, 
   PieChart, LineChart, RefreshCw, Calendar,
-  ShoppingBag, Users, Package, Activity
+  ShoppingBag, Users, Package, Activity,
+  Download, FileText, FileSpreadsheet
 } from 'lucide-react';
 import './DashboardVentas.css';
 
@@ -97,6 +98,35 @@ export default function DashboardVentas() {
 
   const estadisticas = calcularEstadisticas();
 
+  async function exportarReporte(formato) {
+    try {
+      const periodoNum = periodo === '3meses' ? '3' : periodo === '6meses' ? '6' : '12';
+      const url = `/api/dashboard/dashboard-ventas/exportar/?formato=${formato}&periodo=${periodoNum}`;
+      
+      const response = await fetch(url, {
+        method: 'GET',
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error('Error al generar el reporte');
+      }
+      
+      const blob = await response.blob();
+      const url_blob = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url_blob;
+      a.download = `dashboard_ventas_${new Date().toISOString().slice(0, 10)}.${formato === 'pdf' ? 'pdf' : 'xlsx'}`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url_blob);
+      document.body.removeChild(a);
+    } catch (err) {
+      console.error('Error exportando reporte:', err);
+      alert('Error al exportar el reporte. Por favor, intenta nuevamente.');
+    }
+  }
+
   if (loading) {
     return (
       <div className="dashboard-ventas-container">
@@ -148,6 +178,22 @@ export default function DashboardVentas() {
           <button onClick={cargarDatos} className="dashboard-ventas-refresh">
             <RefreshCw /> Actualizar
           </button>
+          <div className="dashboard-ventas-export">
+            <button 
+              onClick={() => exportarReporte('pdf')}
+              className="btn-export btn-export-pdf"
+              title="Exportar a PDF"
+            >
+              <FileText size={18} /> PDF
+            </button>
+            <button 
+              onClick={() => exportarReporte('excel')}
+              className="btn-export btn-export-excel"
+              title="Exportar a Excel"
+            >
+              <FileSpreadsheet size={18} /> Excel
+            </button>
+          </div>
         </div>
       </div>
 

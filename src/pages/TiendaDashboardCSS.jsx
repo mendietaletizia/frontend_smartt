@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Search, ShoppingCart, Menu, X, TrendingUp, Zap, Shield, LogIn, Heart, Eye, Filter, Sparkles } from 'lucide-react'
+import { Search, ShoppingCart, Menu, X, TrendingUp, Zap, Shield, LogIn, Eye, Filter, Sparkles } from 'lucide-react'
 import { listProducts } from '../api/products.js'
 import { getCarrito, addToCarrito } from '../api/carrito.js'
 import Carrito from '../components/Carrito.jsx'
@@ -18,11 +18,39 @@ export default function TiendaDashboardCSS({ user, onShowLogin, onShowRegister, 
   const [showLoginModal, setShowLoginModal] = useState(false)
   const [addingToCart, setAddingToCart] = useState(null)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [selectedProduct, setSelectedProduct] = useState(null)
+  const [configuracion, setConfiguracion] = useState({
+    nombre_tienda: 'SmartSales365',
+    email_contacto: '',
+    telefono: '',
+    ciudad: 'La Paz',
+    pais: 'Bolivia'
+  })
 
   useEffect(() => {
     loadProductos()
     loadCartCount()
+    loadConfiguracion()
   }, [])
+
+  async function loadConfiguracion() {
+    try {
+      // Intentar cargar desde localStorage (donde se guarda la configuración)
+      const savedConfig = localStorage.getItem('configuracion_tienda')
+      if (savedConfig) {
+        const config = JSON.parse(savedConfig)
+        setConfiguracion({
+          nombre_tienda: config.nombre_tienda || 'SmartSales365',
+          email_contacto: config.email_contacto || '',
+          telefono: config.telefono || '',
+          ciudad: config.ciudad || 'La Paz',
+          pais: config.pais || 'Bolivia'
+        })
+      }
+    } catch (e) {
+      console.error('Error cargando configuración:', e)
+    }
+  }
 
   async function loadProductos() {
     try {
@@ -57,6 +85,16 @@ export default function TiendaDashboardCSS({ user, onShowLogin, onShowRegister, 
       setError('')
       const result = await addToCarrito(productoId, 1)
       await loadCartCount()
+      
+      // Animación del botón flotante
+      const floatingButton = document.querySelector('.floating-cart-button')
+      if (floatingButton) {
+        floatingButton.classList.add('added')
+        setTimeout(() => {
+          floatingButton.classList.remove('added')
+        }, 500)
+      }
+      
       // Mostrar notificación de éxito
       if (result.message) {
         console.log('✅', result.message)
@@ -362,12 +400,13 @@ export default function TiendaDashboardCSS({ user, onShowLogin, onShowRegister, 
                     )}
                   </div>
 
-                  {/* Botones de acción */}
+                  {/* Botón de acción - Ver detalles */}
                   <div className="product-actions">
-                    <button className="action-button">
-                      <Heart className="action-icon" />
-                    </button>
-                    <button className="action-button">
+                    <button 
+                      className="action-button"
+                      onClick={() => setSelectedProduct(producto)}
+                      title="Ver detalles del producto"
+                    >
                       <Eye className="action-icon" />
                     </button>
                   </div>
@@ -457,9 +496,18 @@ export default function TiendaDashboardCSS({ user, onShowLogin, onShowRegister, 
           </div>
 
           <div className="footer-bottom">
-            <p className="footer-copyright">
-              © 2024 SmartSales365. Todos los derechos reservados. Desarrollado con ❤️ para estudiantes universitarios.
-            </p>
+            <div className="footer-info">
+              <p className="footer-copyright">
+                © {new Date().getFullYear()} {configuracion.nombre_tienda}. Todos los derechos reservados.
+              </p>
+              <div className="footer-contact">
+                <span>📧 {configuracion.email_contacto || 'contacto@smartsales365.com'}</span>
+                <span>📞 {configuracion.telefono || '+591 12345678'}</span>
+                {(configuracion.ciudad || configuracion.pais) && (
+                  <span>📍 {configuracion.ciudad}{configuracion.ciudad && configuracion.pais ? ', ' : ''}{configuracion.pais}</span>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -468,7 +516,22 @@ export default function TiendaDashboardCSS({ user, onShowLogin, onShowRegister, 
       <Carrito
         isOpen={showCarrito}
         onClose={() => setShowCarrito(false)}
+        onCartUpdate={loadCartCount}
       />
+
+      {/* Botón flotante del carrito */}
+      <button
+        onClick={() => setShowCarrito(true)}
+        className="floating-cart-button"
+        title="Ver carrito"
+      >
+        <ShoppingCart className="floating-cart-icon" />
+        {cartCount > 0 && (
+          <span className="floating-cart-badge">
+            {cartCount}
+          </span>
+        )}
+      </button>
 
       {/* Modal de Login */}
       <LoginModal
@@ -476,6 +539,142 @@ export default function TiendaDashboardCSS({ user, onShowLogin, onShowRegister, 
         onClose={() => setShowLoginModal(false)}
         onLoginSuccess={handleLoginSuccess}
       />
+
+      {/* Modal de Detalles del Producto */}
+      {selectedProduct && (
+        <div 
+          className="product-modal-overlay"
+          onClick={() => setSelectedProduct(null)}
+        >
+          <div 
+            className="product-modal-content"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              className="product-modal-close"
+              onClick={() => setSelectedProduct(null)}
+              title="Cerrar"
+            >
+              <X size={24} />
+            </button>
+
+            <div className="product-modal-body">
+              <div className="product-modal-image-section">
+                {selectedProduct.imagen ? (
+                  <img
+                    src={selectedProduct.imagen}
+                    alt={selectedProduct.nombre}
+                    className="product-modal-image"
+                  />
+                ) : (
+                  <div className="product-modal-placeholder">
+                    <span className="placeholder-icon">📦</span>
+                    <p>Sin imagen</p>
+                  </div>
+                )}
+              </div>
+
+              <div className="product-modal-info-section">
+                <div className="product-modal-header">
+                  <h2 className="product-modal-title">{selectedProduct.nombre}</h2>
+                  <div className="product-modal-badges">
+                    {selectedProduct.categoria && (
+                      <span className="product-modal-category">
+                        {selectedProduct.categoria}
+                      </span>
+                    )}
+                    {selectedProduct.stock < 5 && selectedProduct.stock > 0 && (
+                      <span className="product-modal-stock-warning">
+                        ¡Últimas unidades!
+                      </span>
+                    )}
+                    {selectedProduct.stock === 0 && (
+                      <span className="product-modal-stock-out">
+                        Sin Stock
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="product-modal-price-section">
+                  <span className="product-modal-price">
+                    Bs. {selectedProduct.precio.toFixed(2)}
+                  </span>
+                  <span className="product-modal-stock">
+                    Stock disponible: {selectedProduct.stock} unidades
+                  </span>
+                </div>
+
+                {selectedProduct.descripcion && (
+                  <div className="product-modal-description">
+                    <h3>Descripción</h3>
+                    <p>{selectedProduct.descripcion}</p>
+                  </div>
+                )}
+
+                <div className="product-modal-details">
+                  <h3>Información del Producto</h3>
+                  <div className="product-modal-details-grid">
+                    {selectedProduct.marca && (
+                      <div className="product-modal-detail-item">
+                        <strong>Marca:</strong>
+                        <span>{selectedProduct.marca}</span>
+                      </div>
+                    )}
+                    {selectedProduct.categoria && (
+                      <div className="product-modal-detail-item">
+                        <strong>Categoría:</strong>
+                        <span>{selectedProduct.categoria}</span>
+                      </div>
+                    )}
+                    {selectedProduct.proveedor && (
+                      <div className="product-modal-detail-item">
+                        <strong>Proveedor:</strong>
+                        <span>{selectedProduct.proveedor}</span>
+                      </div>
+                    )}
+                    <div className="product-modal-detail-item">
+                      <strong>Precio:</strong>
+                      <span>Bs. {selectedProduct.precio.toFixed(2)}</span>
+                    </div>
+                    <div className="product-modal-detail-item">
+                      <strong>Stock:</strong>
+                      <span>{selectedProduct.stock} unidades</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="product-modal-actions">
+                  <button
+                    onClick={() => {
+                      handleAddToCart(selectedProduct.id)
+                      setSelectedProduct(null)
+                    }}
+                    disabled={addingToCart === selectedProduct.id || selectedProduct.stock === 0}
+                    className={`product-modal-add-button ${
+                      selectedProduct.stock === 0
+                        ? 'disabled'
+                        : addingToCart === selectedProduct.id
+                        ? 'loading'
+                        : ''
+                    }`}
+                  >
+                    <ShoppingCart className="cart-icon" />
+                    <span>
+                      {addingToCart === selectedProduct.id
+                        ? 'Agregando...'
+                        : selectedProduct.stock === 0
+                        ? 'Sin Stock'
+                        : 'Añadir al carrito'
+                      }
+                    </span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

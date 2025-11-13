@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Search, ShoppingCart, User, Menu, X, TrendingUp, Zap, Bell, BarChart3, 
   Package, Users, FileText, Brain, Home, Settings, ChevronDown, Plus, 
-  Download, Mic, DollarSign, ShoppingBag, AlertCircle, TrendingDown, 
+  Download, DollarSign, ShoppingBag, AlertCircle, TrendingDown, 
   Edit, Trash2, Eye, Filter, Save, Upload, Calendar, CreditCard, 
   Mail, Phone, MapPin, Clock, CheckCircle, XCircle, AlertTriangle,
   UserPlus, UserMinus, Shield, Database, Activity, Target, PieChart,
@@ -18,14 +18,15 @@ import HistorialVentas from '../components/HistorialVentas.jsx';
 import ReportesDinamicos from '../components/ReportesDinamicos.jsx';
 import DashboardVentas from '../components/DashboardVentas.jsx';
 import GestionModeloIA from '../components/GestionModeloIA.jsx';
+import PrediccionesVentas from '../components/PrediccionesVentas.jsx';
+import Configuracion from '../components/Configuracion.jsx';
+import Notificaciones from '../components/Notificaciones.jsx';
 import './AdminDashboard.css';
 
 export default function AdminDashboard({ user, onLogout }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activeSection, setActiveSection] = useState('dashboard');
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  const [notifications] = useState(5);
-  const [isListening, setIsListening] = useState(false);
   const [productos, setProductos] = useState([]);
   const [clientes, setClientes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -151,7 +152,6 @@ export default function AdminDashboard({ user, onLogout }) {
     { id: 'reportes', label: 'Reportes', icon: FileText, description: 'Generar reportes dinámicos' },
     { id: 'analytics', label: 'Analytics', icon: BarChart, description: 'Análisis de datos y métricas' },
     { id: 'predicciones', label: 'Predicciones IA', icon: Brain, description: 'Análisis predictivo con IA' },
-    { id: 'marketing', label: 'Marketing', icon: Target, description: 'Campañas y promociones' },
     { id: 'notificaciones', label: 'Notificaciones', icon: Bell, description: 'Sistema de alertas' },
     { id: 'configuracion', label: 'Configuración', icon: Settings, description: 'Configuración del sistema' }
   ];
@@ -486,9 +486,6 @@ export default function AdminDashboard({ user, onLogout }) {
     }
   }
 
-  const toggleVoiceCommand = () => {
-    setIsListening(!isListening);
-  };
 
   const handleLogout = () => {
     if (onLogout) {
@@ -1771,11 +1768,23 @@ export default function AdminDashboard({ user, onLogout }) {
       case 'predicciones':
         return (
           <main className="admin-main" style={{ padding: '0' }}>
-            <GestionModeloIA />
+            <PrediccionesVentas />
           </main>
         );
       case 'categorias':
         return renderCategorias();
+      case 'configuracion':
+        return (
+          <main className="admin-main" style={{ padding: '0' }}>
+            <Configuracion user={user} />
+          </main>
+        );
+      case 'notificaciones':
+        return (
+          <main className="admin-main" style={{ padding: '0' }}>
+            <Notificaciones user={user} />
+          </main>
+        );
       default:
         return (
           <main className="admin-main">
@@ -1839,13 +1848,6 @@ export default function AdminDashboard({ user, onLogout }) {
           })}
         </nav>
 
-        {/* Settings at bottom */}
-        <div className="admin-sidebar-footer">
-          <button className="admin-menu-item">
-            <Settings className="admin-menu-icon" />
-            {sidebarOpen && <span className="admin-menu-label">Configuración</span>}
-          </button>
-        </div>
       </aside>
 
       {/* Main Content */}
@@ -1871,25 +1873,6 @@ export default function AdminDashboard({ user, onLogout }) {
             </div>
 
             <div className="admin-header-right">
-              {/* Voice Command */}
-              <button
-                onClick={toggleVoiceCommand}
-                className={`admin-header-button ${isListening ? 'admin-header-button-active' : ''}`}
-                title="Comando de voz"
-              >
-                <Mic className="admin-header-icon" />
-              </button>
-
-              {/* Notifications */}
-              <button className="admin-header-button admin-header-button-notification">
-                <Bell className="admin-header-icon" />
-                {notifications > 0 && (
-                  <span className="admin-notification-badge">
-                    {notifications}
-                  </span>
-                )}
-              </button>
-
               {/* User Menu */}
               <div className="admin-user-menu">
                 <button
@@ -1908,11 +1891,13 @@ export default function AdminDashboard({ user, onLogout }) {
 
                 {isUserMenuOpen && (
                   <div className="admin-user-dropdown">
-                    <button className="admin-user-dropdown-item">
-                      <User className="admin-user-dropdown-icon" />
-                      <span>Mi Perfil</span>
-                    </button>
-                    <button className="admin-user-dropdown-item">
+                    <button 
+                      className="admin-user-dropdown-item"
+                      onClick={() => {
+                        setActiveSection('configuracion')
+                        setIsUserMenuOpen(false)
+                      }}
+                    >
                       <Settings className="admin-user-dropdown-icon" />
                       <span>Configuración</span>
                     </button>

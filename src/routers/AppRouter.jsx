@@ -6,6 +6,7 @@ import TiendaDashboardCSS from '../pages/TiendaDashboardCSS.jsx'
 import AdminDashboard from '../pages/AdminDashboard.jsx'
 import HistorialVentas from '../components/HistorialVentas.jsx'
 import ReportesDinamicos from '../components/ReportesDinamicos.jsx'
+import NotificacionesCliente from '../components/NotificacionesCliente.jsx'
 import { obtenerHistorialVentas } from '../api/historial.js'
 import { descargarComprobantePDF } from '../api/comprobantes.js'
 import '../pages/TiendaDashboard.css'
@@ -77,8 +78,7 @@ function AppRouterContent({ user, onLogin, onLogout, message, showRegister, setS
           <h1>Mi Cuenta</h1>
           <div className="cliente-nav">
             <button
-              className={currentView === 'tienda' ? 'active' : ''}
-              onClick={() => setCurrentView('tienda')}
+              onClick={() => navigate('/')}
             >
               🏪 Tienda
             </button>
@@ -100,6 +100,12 @@ function AppRouterContent({ user, onLogin, onLogout, message, showRegister, setS
             >
               📈 Reportes
             </button>
+            <button
+              className={currentView === 'notificaciones' ? 'active' : ''}
+              onClick={() => setCurrentView('notificaciones')}
+            >
+              🔔 Notificaciones
+            </button>
             <button onClick={onLogout} className="btn-logout">
               🚪 Cerrar Sesión
             </button>
@@ -108,6 +114,7 @@ function AppRouterContent({ user, onLogin, onLogout, message, showRegister, setS
         <div className="cliente-content">
           {currentView === 'historial' && <HistorialVentas />}
           {currentView === 'reportes' && <ReportesDinamicos user={user} />}
+          {currentView === 'notificaciones' && <NotificacionesCliente />}
           {currentView === 'cliente' && (
             <>
         <h2>Panel del Cliente</h2>
@@ -256,12 +263,6 @@ function AppRouterContent({ user, onLogin, onLogout, message, showRegister, setS
           </div>
         </div>
           </>
-        )}
-        {currentView === 'tienda' && (
-          <div style={{ padding: '20px' }}>
-            <p>Redirigiendo a la tienda...</p>
-            <button onClick={() => navigate('/')}>Ir a Tienda</button>
-          </div>
         )}
       </div>
     </div>

@@ -3,7 +3,7 @@ import { getCarrito, updateItemCarrito, removeFromCarrito, clearCarrito, saveFor
 import Checkout from './Checkout.jsx'
 import './Carrito.css'
 
-export default function Carrito({ isOpen, onClose }) {
+export default function Carrito({ isOpen, onClose, onCartUpdate }) {
   const [carrito, setCarrito] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -28,6 +28,10 @@ export default function Carrito({ isOpen, onClose }) {
       setError('')
       const data = await getCarrito()
       setCarrito(data)
+      // Notificar actualización del carrito al componente padre
+      if (onCartUpdate) {
+        onCartUpdate()
+      }
     } catch (e) {
       setError('Error al cargar carrito: ' + e.message)
     } finally {
@@ -100,7 +104,8 @@ export default function Carrito({ isOpen, onClose }) {
     
     try {
       setLoading(true)
-      await applyDiscount(discountCode.trim())
+      const totalCarrito = carrito?.total_precio || 0
+      await applyDiscount(discountCode.trim().toUpperCase(), totalCarrito)
       setDiscountCode('')
       setShowDiscountForm(false)
       await loadCarrito()
@@ -271,7 +276,7 @@ export default function Carrito({ isOpen, onClose }) {
                         </button>
                       </div>
                       <p className="discount-info">
-                        Códigos válidos: DESCUENTO10, WELCOME10, PRIMERA10
+                        Ingresa el código del cupón que recibiste por notificación
                       </p>
                     </div>
                   )}

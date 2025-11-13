@@ -92,16 +92,29 @@ export async function saveForLater(itemId) {
   return data
 }
 
-export async function applyDiscount(codigoDescuento) {
-  const res = await fetch('/api/ventas/carrito/management/', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
-    body: JSON.stringify({ action: 'apply_discount', codigo_descuento: codigoDescuento })
-  })
-  const data = await res.json().catch(() => ({ success: false }))
-  if (!res.ok || !data.success) throw new Error(data.message || 'No se pudo aplicar el descuento')
-  return data
+export async function applyDiscount(codigoDescuento, totalCarrito = 0) {
+  // Primero validar el cupón
+  try {
+    const { validarCupon } = await import('./ofertas.js');
+    const validacion = await validarCupon(codigoDescuento, totalCarrito);
+    
+    if (!validacion.success) {
+      throw new Error(validacion.message || 'Cupón no válido');
+    }
+    
+    // Si el cupón es válido, aplicarlo al carrito
+    const res = await fetch('/api/ventas/carrito/management/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ action: 'apply_discount', codigo_descuento: codigoDescuento })
+    })
+    const data = await res.json().catch(() => ({ success: false }))
+    if (!res.ok || !data.success) throw new Error(data.message || 'No se pudo aplicar el descuento')
+    return data
+  } catch (error) {
+    throw error;
+  }
 }
 
 // CU10: Funciones de checkout
