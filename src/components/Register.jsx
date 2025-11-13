@@ -11,7 +11,8 @@ export default function Register({ onSuccess, onCancel }) {
     confirmarContrasena: '',
     telefono: '',
     direccion: '',
-    ciudad: ''
+    ciudad: '',
+    tipoUsuario: 'cliente'
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -57,13 +58,19 @@ export default function Register({ onSuccess, onCancel }) {
         email: form.email.trim(),
         contrasena: form.contrasena,
         telefono: form.telefono.trim(),
-        direccion: form.direccion.trim(),
-        ciudad: form.ciudad.trim()
+        direccion: form.tipoUsuario === 'cliente' ? form.direccion.trim() : '',
+        ciudad: form.tipoUsuario === 'cliente' ? form.ciudad.trim() : '',
+        rol: form.tipoUsuario
       }
 
       const result = await register(userData)
       
-      setMessage('✅ Cuenta creada exitosamente')
+      const nuevoRol = result?.user?.rol || (form.tipoUsuario === 'administrador' ? 'Administrador' : 'Cliente')
+      setMessage(
+        nuevoRol.toLowerCase() === 'administrador'
+          ? '✅ Cuenta de administrador creada exitosamente'
+          : '✅ Cuenta de cliente creada exitosamente'
+      )
       
       // Llamar callback de éxito después de un momento
       setTimeout(() => {
@@ -93,11 +100,32 @@ export default function Register({ onSuccess, onCancel }) {
         </button>
       </div>
       <div className="form-header">
-        <h2>📝 Crear Cuenta de Cliente</h2>
-        <p>Regístrate para realizar compras y gestionar tu perfil</p>
+        <h2>📝 Crear Cuenta</h2>
+        <p>Selecciona el tipo de cuenta que deseas crear y completa tus datos.</p>
       </div>
 
       <form onSubmit={handleSubmit}>
+        <div className="form-group">
+          <label>
+            Tipo de cuenta *
+            <select
+              value={form.tipoUsuario}
+              onChange={(e) => {
+                const value = e.target.value
+                setForm((prev) => ({
+                  ...prev,
+                  tipoUsuario: value,
+                  direccion: value === 'cliente' ? prev.direccion : '',
+                  ciudad: value === 'cliente' ? prev.ciudad : ''
+                }))
+              }}
+            >
+              <option value="cliente">Cliente</option>
+              <option value="administrador">Administrador</option>
+            </select>
+          </label>
+        </div>
+
         <div className="form-row">
           <div className="form-group">
             <label>
@@ -178,29 +206,33 @@ export default function Register({ onSuccess, onCancel }) {
           </label>
         </div>
 
-        <div className="form-group">
-          <label>
-            Dirección
-            <input
-              type="text"
-              value={form.direccion}
-              onChange={(e) => setForm({ ...form, direccion: e.target.value })}
-              placeholder="Calle 123, #45"
-            />
-          </label>
-        </div>
+        {form.tipoUsuario === 'cliente' && (
+          <>
+            <div className="form-group">
+              <label>
+                Dirección
+                <input
+                  type="text"
+                  value={form.direccion}
+                  onChange={(e) => setForm({ ...form, direccion: e.target.value })}
+                  placeholder="Calle 123, #45"
+                />
+              </label>
+            </div>
 
-        <div className="form-group">
-          <label>
-            Ciudad
-            <input
-              type="text"
-              value={form.ciudad}
-              onChange={(e) => setForm({ ...form, ciudad: e.target.value })}
-              placeholder="Tu ciudad"
-            />
-          </label>
-        </div>
+            <div className="form-group">
+              <label>
+                Ciudad
+                <input
+                  type="text"
+                  value={form.ciudad}
+                  onChange={(e) => setForm({ ...form, ciudad: e.target.value })}
+                  placeholder="Tu ciudad"
+                />
+              </label>
+            </div>
+          </>
+        )}
 
         {error && (
           <div className="form-error">

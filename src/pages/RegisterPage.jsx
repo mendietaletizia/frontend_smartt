@@ -3,8 +3,10 @@ import Register from '../components/Register.jsx'
 
 export default function RegisterPage({ onCancel, onSuccess }) {
   const [showSuccess, setShowSuccess] = useState(false)
+  const [createdUser, setCreatedUser] = useState(null)
 
   function handleRegisterSuccess(user) {
+    setCreatedUser(user)
     setShowSuccess(true)
     // Llamar callback de éxito después de 2 segundos
     setTimeout(() => {
@@ -15,6 +17,7 @@ export default function RegisterPage({ onCancel, onSuccess }) {
   }
 
   function handleCancel() {
+    setCreatedUser(null)
     if (onCancel) {
       onCancel()
     }
@@ -25,7 +28,11 @@ export default function RegisterPage({ onCancel, onSuccess }) {
       <div className="register-form">
         <div className="form-header">
           <h2>🎉 ¡Cuenta Creada!</h2>
-          <p>Tu cuenta de cliente ha sido creada exitosamente.</p>
+          <p>
+            Tu cuenta de{' '}
+            {createdUser?.rol ? createdUser.rol.toLowerCase() : 'usuario'}{' '}
+            ha sido creada exitosamente.
+          </p>
           <p>Redirigiendo al login...</p>
         </div>
       </div>
