@@ -1,5 +1,7 @@
 // CU13: API para historial de ventas
 
+import { getApiUrl } from '../config/api.js'
+
 function buildQuery(params) {
   const q = new URLSearchParams()
   Object.entries(params || {}).forEach(([k, v]) => {
@@ -11,7 +13,7 @@ function buildQuery(params) {
 
 export async function obtenerHistorialVentas(filtros = {}) {
   const query = buildQuery(filtros)
-  const res = await fetch(`/api/ventas/historial/${query}`, {
+  const res = await fetch(getApiUrl(`/api/ventas/historial/${query}`), {
     credentials: 'include'
   })
   const data = await res.json().catch(() => ({ success: false }))
@@ -21,7 +23,7 @@ export async function obtenerHistorialVentas(filtros = {}) {
 
 export async function obtenerHistorialAgregado(filtros = {}) {
   const query = buildQuery(filtros)
-  const res = await fetch(`/api/ventas/historial/agregado${query}`, {
+  const res = await fetch(getApiUrl(`/api/ventas/historial/agregado${query}`), {
     credentials: 'include'
   })
   const data = await res.json().catch(() => ({ success: false }))
@@ -30,7 +32,7 @@ export async function obtenerHistorialAgregado(filtros = {}) {
 }
 
 export async function sincronizarHistorial() {
-  const res = await fetch('/api/ventas/historial/sincronizar/', {
+  const res = await fetch(getApiUrl('/api/ventas/historial/sincronizar/'), {
     method: 'POST',
     credentials: 'include'
   })
@@ -40,7 +42,7 @@ export async function sincronizarHistorial() {
 }
 
 export async function obtenerOpcionesFiltros() {
-  const res = await fetch('/api/ventas/historial/filtros/', {
+  const res = await fetch(getApiUrl('/api/ventas/historial/filtros/'), {
     credentials: 'include'
   })
   const data = await res.json().catch(() => ({ success: false }))

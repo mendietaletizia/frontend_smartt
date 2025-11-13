@@ -9,6 +9,7 @@ import {
 import { generarPredicciones, listarPredicciones } from '../api/predicciones.js';
 import { obtenerEstadoModelo } from '../api/modeloIA.js';
 import { obtenerHistorialAgregado } from '../api/historial.js';
+import { getApiUrl } from '../config/api.js';
 import './PrediccionesVentas.css';
 
 export default function PrediccionesVentas() {
@@ -159,7 +160,7 @@ export default function PrediccionesVentas() {
     try {
       const url = `/api/dashboard/predicciones/exportar/?formato=${formato}`;
       
-      const response = await fetch(url, {
+      const response = await fetch(getApiUrl(url), {
         method: 'GET',
         credentials: 'include'
       });

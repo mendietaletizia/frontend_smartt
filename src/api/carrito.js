@@ -1,5 +1,7 @@
 // API para gestión del carrito de compras
 
+import { getApiUrl } from '../config/api.js'
+
 function buildQuery(params) {
   const q = new URLSearchParams()
   Object.entries(params || {}).forEach(([k, v]) => {
@@ -10,7 +12,7 @@ function buildQuery(params) {
 }
 
 export async function getCarrito() {
-  const res = await fetch('/api/ventas/carrito/', { 
+  const res = await fetch(getApiUrl('/api/ventas/carrito/'), { 
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' }
   })
@@ -20,7 +22,7 @@ export async function getCarrito() {
 }
 
 export async function addToCarrito(productoId, cantidad = 1) {
-  const res = await fetch('/api/ventas/carrito/', {
+  const res = await fetch(getApiUrl('/api/ventas/carrito/'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
@@ -32,7 +34,7 @@ export async function addToCarrito(productoId, cantidad = 1) {
 }
 
 export async function updateItemCarrito(itemId, cantidad) {
-  const res = await fetch('/api/ventas/carrito/', {
+  const res = await fetch(getApiUrl('/api/ventas/carrito/'), {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
@@ -46,7 +48,7 @@ export async function updateItemCarrito(itemId, cantidad) {
 export async function removeFromCarrito(itemId) {
   const query = buildQuery({ item_id: itemId })
   const url = query ? `/api/ventas/carrito/${query}` : '/api/ventas/carrito/'
-  const res = await fetch(url, {
+  const res = await fetch(getApiUrl(url), {
     method: 'DELETE',
     credentials: 'include'
   })
@@ -57,7 +59,7 @@ export async function removeFromCarrito(itemId) {
 
 // CU9: Funciones de gestión avanzada del carrito
 export async function clearCarrito() {
-  const res = await fetch('/api/ventas/carrito/management/', {
+  const res = await fetch(getApiUrl('/api/ventas/carrito/management/'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
@@ -69,7 +71,7 @@ export async function clearCarrito() {
 }
 
 export async function mergeCarritos(carritoOrigenId) {
-  const res = await fetch('/api/ventas/carrito/management/', {
+  const res = await fetch(getApiUrl('/api/ventas/carrito/management/'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
@@ -81,7 +83,7 @@ export async function mergeCarritos(carritoOrigenId) {
 }
 
 export async function saveForLater(itemId) {
-  const res = await fetch('/api/ventas/carrito/management/', {
+  const res = await fetch(getApiUrl('/api/ventas/carrito/management/'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
@@ -103,7 +105,7 @@ export async function applyDiscount(codigoDescuento, totalCarrito = 0) {
     }
     
     // Si el cupón es válido, aplicarlo al carrito
-    const res = await fetch('/api/ventas/carrito/management/', {
+    const res = await fetch(getApiUrl('/api/ventas/carrito/management/'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -119,7 +121,7 @@ export async function applyDiscount(codigoDescuento, totalCarrito = 0) {
 
 // CU10: Funciones de checkout
 export async function realizarCompra(datosCompra) {
-  const res = await fetch('/api/ventas/checkout/', {
+  const res = await fetch(getApiUrl('/api/ventas/checkout/'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',

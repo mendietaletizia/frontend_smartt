@@ -1,5 +1,7 @@
 // CU14-CU20: API para reportes dinámicos
 
+import { getApiUrl } from '../config/api.js'
+
 export async function solicitarReporte(texto, origen = null, filtros = null) {
   // origen puede ser 'voz' o null (texto)
   // filtros es un objeto con los filtros a aplicar
@@ -12,7 +14,7 @@ export async function solicitarReporte(texto, origen = null, filtros = null) {
     ...(filtros && { filtros: filtros })
   }
   
-  const res = await fetch('/api/reportes/solicitar/', {
+  const res = await fetch(getApiUrl('/api/reportes/solicitar/'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
@@ -41,7 +43,7 @@ export async function solicitarReporte(texto, origen = null, filtros = null) {
 }
 
 export async function obtenerFiltrosInteligentes(tipoReporte) {
-  const res = await fetch('/api/reportes/filtros-inteligentes/', {
+  const res = await fetch(getApiUrl('/api/reportes/filtros-inteligentes/'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
@@ -53,7 +55,7 @@ export async function obtenerFiltrosInteligentes(tipoReporte) {
 }
 
 export async function listarReportes() {
-  const res = await fetch('/api/reportes/listar/', {
+  const res = await fetch(getApiUrl('/api/reportes/listar/'), {
     credentials: 'include'
   })
   const data = await res.json().catch(() => ({ success: false }))
@@ -62,7 +64,7 @@ export async function listarReportes() {
 }
 
 export async function obtenerOpcionesFiltros() {
-  const res = await fetch('/api/reportes/opciones-filtros/', {
+  const res = await fetch(getApiUrl('/api/reportes/opciones-filtros/'), {
     credentials: 'include'
   })
   const data = await res.json().catch(() => ({ success: false }))
@@ -72,7 +74,7 @@ export async function obtenerOpcionesFiltros() {
 
 export async function descargarReporte(reporteId, formato = 'pdf') {
   try {
-    const res = await fetch(`/api/reportes/${reporteId}/descargar/?formato=${formato}`, {
+    const res = await fetch(getApiUrl(`/api/reportes/${reporteId}/descargar/?formato=${formato}`), {
       method: 'GET',
       credentials: 'include'
     })

@@ -1,7 +1,9 @@
 // API para gestión del modelo de IA
 
+import { getApiUrl } from '../config/api.js'
+
 export async function obtenerEstadoModelo() {
-  const res = await fetch('/api/dashboard/modelo/estado/', {
+  const res = await fetch(getApiUrl('/api/dashboard/modelo/estado/'), {
     credentials: 'include'
   });
   const data = await res.json().catch(() => ({ success: false }));
@@ -12,7 +14,7 @@ export async function obtenerEstadoModelo() {
 }
 
 export async function entrenarModelo() {
-  const res = await fetch('/api/dashboard/modelo/entrenar/', {
+  const res = await fetch(getApiUrl('/api/dashboard/modelo/entrenar/'), {
     method: 'POST',
     credentials: 'include',
     headers: {
@@ -27,7 +29,7 @@ export async function entrenarModelo() {
 }
 
 export async function actualizarModelo() {
-  const res = await fetch('/api/dashboard/modelo/actualizar/', {
+  const res = await fetch(getApiUrl('/api/dashboard/modelo/actualizar/'), {
     method: 'POST',
     credentials: 'include',
     headers: {
@@ -42,7 +44,7 @@ export async function actualizarModelo() {
 }
 
 export async function obtenerHistorialEntrenamientos() {
-  const res = await fetch('/api/dashboard/modelo/historial/', {
+  const res = await fetch(getApiUrl('/api/dashboard/modelo/historial/'), {
     credentials: 'include'
   });
   const data = await res.json().catch(() => ({ success: false }));

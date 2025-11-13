@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { loadStripe } from '@stripe/stripe-js'
 import { createPaymentIntent, verifyPaymentIntent } from '../api/stripe.js'
+import { getApiUrl } from '../config/api.js'
 import './StripePaymentForm.css'
 
 // Variable global para almacenar la instancia de Stripe
@@ -10,7 +11,7 @@ let stripeLoading = false
 // Función para obtener la clave pública de Stripe desde el backend
 async function getStripePublishableKey() {
   try {
-    const res = await fetch('/api/ventas/stripe/publishable-key/', {
+    const res = await fetch(getApiUrl('/api/ventas/stripe/publishable-key/'), {
       credentials: 'include'
     })
     if (!res.ok) {

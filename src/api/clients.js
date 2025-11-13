@@ -1,5 +1,7 @@
 // API para gestión de clientes
 
+import { getApiUrl } from '../config/api.js'
+
 function buildQuery(params) {
   const q = new URLSearchParams()
   Object.entries(params || {}).forEach(([k, v]) => {
@@ -11,14 +13,14 @@ function buildQuery(params) {
 
 export async function listClients(params = {}) {
   const query = buildQuery(params)
-  const res = await fetch(`/api/clientes/${query}`, { credentials: 'include' })
+  const res = await fetch(getApiUrl(`/api/clientes/${query}`), { credentials: 'include' })
   const data = await res.json().catch(() => ({ success: false }))
   if (!res.ok || !data.success) throw new Error(data.message || 'No se pudieron obtener los clientes')
   return data
 }
 
 export async function getClient(id) {
-  const res = await fetch(`/api/clientes/${id}/`, { credentials: 'include' })
+  const res = await fetch(getApiUrl(`/api/clientes/${id}/`), { credentials: 'include' })
   const data = await res.json().catch(() => ({ success: false }))
   if (!res.ok || !data.success) throw new Error(data.message || 'No se pudo obtener el cliente')
   return data
@@ -26,14 +28,14 @@ export async function getClient(id) {
 
 export async function getClientVentas(id, params = {}) {
   const query = buildQuery(params)
-  const res = await fetch(`/api/clientes/${id}/ventas/${query}`, { credentials: 'include' })
+  const res = await fetch(getApiUrl(`/api/clientes/${id}/ventas/${query}`), { credentials: 'include' })
   const data = await res.json().catch(() => ({ success: false }))
   if (!res.ok || !data.success) throw new Error(data.message || 'No se pudo obtener el historial de compras')
   return data
 }
 
 export async function updateClient(body) {
-  const res = await fetch(`/api/clientes/${body.id}/`, {
+  const res = await fetch(getApiUrl(`/api/clientes/${body.id}/`), {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
@@ -45,7 +47,7 @@ export async function updateClient(body) {
 }
 
 export async function deleteClient(id) {
-  const res = await fetch(`/api/clientes/${id}/`, {
+  const res = await fetch(getApiUrl(`/api/clientes/${id}/`), {
     method: 'DELETE',
     credentials: 'include'
   })

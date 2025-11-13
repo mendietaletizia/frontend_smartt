@@ -1,7 +1,9 @@
 // CU12: API para comprobantes
 
+import { getApiUrl } from '../config/api.js'
+
 export async function generarComprobante(ventaId, tipo = 'factura') {
-  const res = await fetch('/api/ventas/comprobantes/generar/', {
+  const res = await fetch(getApiUrl('/api/ventas/comprobantes/generar/'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
@@ -13,7 +15,7 @@ export async function generarComprobante(ventaId, tipo = 'factura') {
 }
 
 export async function obtenerComprobante(ventaId) {
-  const res = await fetch(`/api/ventas/comprobantes/${ventaId}/`, {
+  const res = await fetch(getApiUrl(`/api/ventas/comprobantes/${ventaId}/`), {
     credentials: 'include'
   })
   const data = await res.json().catch(() => ({ success: false }))
@@ -22,7 +24,7 @@ export async function obtenerComprobante(ventaId) {
 }
 
 export function descargarComprobantePDF(ventaId) {
-  window.open(`/api/ventas/comprobantes/${ventaId}/pdf/`, '_blank')
+  window.open(getApiUrl(`/api/ventas/comprobantes/${ventaId}/pdf/`), '_blank')
 }
 
 

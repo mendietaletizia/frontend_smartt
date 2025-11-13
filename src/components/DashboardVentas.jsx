@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { obtenerEstadisticasDashboard } from '../api/dashboard.js';
 import { obtenerHistorialAgregado } from '../api/historial.js';
+import { getApiUrl } from '../config/api.js';
 import { 
   DollarSign, TrendingUp, TrendingDown, BarChart3, 
   PieChart, LineChart, RefreshCw, Calendar,
@@ -103,7 +104,7 @@ export default function DashboardVentas() {
       const periodoNum = periodo === '3meses' ? '3' : periodo === '6meses' ? '6' : '12';
       const url = `/api/dashboard/dashboard-ventas/exportar/?formato=${formato}&periodo=${periodoNum}`;
       
-      const response = await fetch(url, {
+      const response = await fetch(getApiUrl(url), {
         method: 'GET',
         credentials: 'include'
       });

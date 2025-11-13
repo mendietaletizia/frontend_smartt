@@ -1,3 +1,5 @@
+import { getApiUrl } from '../config/api.js'
+
 const API_BASE = '/api';
 
 export async function obtenerNotificaciones(filtros = {}) {
@@ -10,7 +12,7 @@ export async function obtenerNotificaciones(filtros = {}) {
     
     const url = `${API_BASE}/notificaciones${params.toString() ? '?' + params.toString() : ''}`;
     
-    const response = await fetch(url, {
+    const response = await fetch(getApiUrl(url), {
       method: 'GET',
       credentials: 'include',
       headers: {
@@ -32,7 +34,7 @@ export async function obtenerNotificaciones(filtros = {}) {
 
 export async function crearNotificacion(datos) {
   try {
-    const response = await fetch(`${API_BASE}/notificaciones/`, {
+    const response = await fetch(getApiUrl(`${API_BASE}/notificaciones/`), {
       method: 'POST',
       credentials: 'include',
       headers: {
@@ -55,7 +57,7 @@ export async function crearNotificacion(datos) {
 
 export async function marcarNotificacionLeida(notificacionId, leida = true) {
   try {
-    const response = await fetch(`${API_BASE}/notificaciones/${notificacionId}/`, {
+    const response = await fetch(getApiUrl(`${API_BASE}/notificaciones/${notificacionId}/`), {
       method: 'PATCH',
       credentials: 'include',
       headers: {
@@ -78,7 +80,7 @@ export async function marcarNotificacionLeida(notificacionId, leida = true) {
 
 export async function eliminarNotificacion(notificacionId) {
   try {
-    const response = await fetch(`${API_BASE}/notificaciones/${notificacionId}/`, {
+    const response = await fetch(getApiUrl(`${API_BASE}/notificaciones/${notificacionId}/`), {
       method: 'DELETE',
       credentials: 'include',
       headers: {
@@ -100,7 +102,7 @@ export async function eliminarNotificacion(notificacionId) {
 
 export async function marcarTodasLeidas() {
   try {
-    const response = await fetch(`${API_BASE}/notificaciones/marcar-todas-leidas/`, {
+    const response = await fetch(getApiUrl(`${API_BASE}/notificaciones/marcar-todas-leidas/`), {
       method: 'POST',
       credentials: 'include',
       headers: {

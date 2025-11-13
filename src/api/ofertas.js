@@ -1,3 +1,5 @@
+import { getApiUrl } from '../config/api.js'
+
 const API_BASE = '/api';
 
 export async function obtenerOfertas(filtros = {}) {
@@ -8,7 +10,7 @@ export async function obtenerOfertas(filtros = {}) {
     
     const url = `${API_BASE}/productos/ofertas/${params.toString() ? '?' + params.toString() : ''}`;
     
-    const response = await fetch(url, {
+    const response = await fetch(getApiUrl(url), {
       method: 'GET',
       credentials: 'include',
       headers: {
@@ -30,7 +32,7 @@ export async function obtenerOfertas(filtros = {}) {
 
 export async function crearOferta(ofertaData) {
   try {
-    const response = await fetch(`${API_BASE}/productos/ofertas/`, {
+    const response = await fetch(getApiUrl(`${API_BASE}/productos/ofertas/`), {
       method: 'POST',
       credentials: 'include',
       headers: {
@@ -53,7 +55,7 @@ export async function crearOferta(ofertaData) {
 
 export async function obtenerSugerenciasIA() {
   try {
-    const response = await fetch(`${API_BASE}/productos/ofertas/sugerir-ia/`, {
+    const response = await fetch(getApiUrl(`${API_BASE}/productos/ofertas/sugerir-ia/`), {
       method: 'GET',
       credentials: 'include',
       headers: {
@@ -81,7 +83,7 @@ export async function obtenerCupones(filtros = {}) {
     
     const url = `${API_BASE}/productos/cupones/${params.toString() ? '?' + params.toString() : ''}`;
     
-    const response = await fetch(url, {
+    const response = await fetch(getApiUrl(url), {
       method: 'GET',
       credentials: 'include',
       headers: {
@@ -103,7 +105,7 @@ export async function obtenerCupones(filtros = {}) {
 
 export async function crearCupon(cuponData) {
   try {
-    const response = await fetch(`${API_BASE}/productos/cupones/`, {
+    const response = await fetch(getApiUrl(`${API_BASE}/productos/cupones/`), {
       method: 'POST',
       credentials: 'include',
       headers: {
@@ -126,7 +128,7 @@ export async function crearCupon(cuponData) {
 
 export async function validarCupon(codigo, totalCarrito = 0) {
   try {
-    const response = await fetch(`${API_BASE}/productos/cupones/validar/`, {
+    const response = await fetch(getApiUrl(`${API_BASE}/productos/cupones/validar/`), {
       method: 'POST',
       credentials: 'include',
       headers: {

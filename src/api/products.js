@@ -1,3 +1,5 @@
+import { getApiUrl } from '../config/api.js'
+
 function buildQuery(params) {
   const q = new URLSearchParams()
   Object.entries(params || {}).forEach(([k, v]) => {
@@ -10,7 +12,7 @@ function buildQuery(params) {
 export async function listProducts(params = {}) {
   const query = buildQuery(params)
   const url = query ? `/api/productos/${query}` : '/api/productos/'
-  const res = await fetch(url, { credentials: 'include' })
+  const res = await fetch(getApiUrl(url), { credentials: 'include' })
   const data = await res.json().catch(() => ({ success: false }))
   if (!res.ok || !data.success) {
     const errorMsg = data.message || 'No se pudo obtener productos'
@@ -20,7 +22,7 @@ export async function listProducts(params = {}) {
 }
 
 export async function createProduct(body) {
-  const res = await fetch('/api/productos/admin/', {
+  const res = await fetch(getApiUrl('/api/productos/admin/'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
@@ -32,7 +34,7 @@ export async function createProduct(body) {
 }
 
 export async function updateProduct(body) {
-  const res = await fetch('/api/productos/admin/', {
+  const res = await fetch(getApiUrl('/api/productos/admin/'), {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
@@ -44,7 +46,7 @@ export async function updateProduct(body) {
 }
 
 export async function deleteProduct(id) {
-  const res = await fetch(`/api/productos/admin/?id=${encodeURIComponent(id)}`, {
+  const res = await fetch(getApiUrl(`/api/productos/admin/?id=${encodeURIComponent(id)}`), {
     method: 'DELETE',
     credentials: 'include'
   })
@@ -54,14 +56,14 @@ export async function deleteProduct(id) {
 }
 
 export async function listCategorias() {
-  const res = await fetch('/api/productos/categorias/', { credentials: 'include' })
+  const res = await fetch(getApiUrl('/api/productos/categorias/'), { credentials: 'include' })
   const data = await res.json().catch(() => ({ success: false }))
   if (!res.ok || !data.success) throw new Error('No se pudieron obtener las categorías')
   return data
 }
 
 export async function createCategoria(body) {
-  const res = await fetch('/api/productos/categorias/', {
+  const res = await fetch(getApiUrl('/api/productos/categorias/'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
@@ -73,7 +75,7 @@ export async function createCategoria(body) {
 }
 
 export async function updateCategoria(body) {
-  const res = await fetch('/api/productos/categorias/', {
+  const res = await fetch(getApiUrl('/api/productos/categorias/'), {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
@@ -85,7 +87,7 @@ export async function updateCategoria(body) {
 }
 
 export async function deleteCategoria(id) {
-  const res = await fetch(`/api/productos/categorias/?id=${encodeURIComponent(id)}`, {
+  const res = await fetch(getApiUrl(`/api/productos/categorias/?id=${encodeURIComponent(id)}`), {
     method: 'DELETE',
     credentials: 'include'
   })

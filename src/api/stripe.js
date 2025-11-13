@@ -1,5 +1,7 @@
 // API para integración con Stripe Payment Intents (pago en la misma página)
 
+import { getApiUrl } from '../config/api.js'
+
 /**
  * Crear un PaymentIntent de Stripe
  * @param {Object} data - Datos del pago
@@ -9,7 +11,7 @@
  */
 export async function createPaymentIntent(data) {
   try {
-    const res = await fetch('/api/ventas/stripe/create-payment-intent/', {
+    const res = await fetch(getApiUrl('/api/ventas/stripe/create-payment-intent/'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -44,7 +46,7 @@ export async function createPaymentIntent(data) {
  * @returns {Promise<Object>} - Estado del pago
  */
 export async function verifyPaymentIntent(paymentIntentId) {
-  const res = await fetch('/api/ventas/stripe/verify-payment-intent/', {
+  const res = await fetch(getApiUrl('/api/ventas/stripe/verify-payment-intent/'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
